@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>High Score — Salem's Premier Barcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+:root {
+  --neon-pink:    #FF006E;
+  --neon-cyan:    #00F5FF;
+  --neon-yellow:  #FFEA00;
+  --neon-purple:  #B400FF;
+  --neon-green:   #39FF14;
+  --arcade-red:   #FF1744;
+  --dark-bg:      #0A0E27;
+  --darker-bg:    #050816;
+  --panel-bg:     rgba(15,20,50,0.7);
+  --border-glow:  rgba(0,245,255,0.3);
+  --text-main:    #E0E7FF;
+  --text-dim:     #8B95C9;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--darker-bg);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ── SCANLINE & GRID EFFECT ────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: 
+    repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, transparent 2px, transparent 4px),
+    radial-gradient(circle at 50% 50%, transparent 0%, rgba(10,14,39,0.8) 100%);
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.6;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background-image: 
+    linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 1;
+  animation: gridDrift 20s linear infinite;
+}
+
+@keyframes gridDrift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+/* ── NAV ───────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: rgba(10,14,39,0.95);
+  border-bottom: 2px solid var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0,245,255,0.5);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  padding: 16px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 20px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+  letter-spacing: 2px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+  align-items: center;
+}
+
+.nav-links a {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px; left: 0;
+  width: 0; height: 2px;
+  background: var(--neon-pink);
+  box-shadow: 0 0 8px var(--neon-pink);
+  transition: width 0.3s;
+}
+
+.nav-links a:hover {
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
+}
+.nav-links a:hover::after { width: 100%; }
+
+.btn-book-nav {
+  background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(255,0,110,0.6);
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-block;
+}
+.btn-book-nav:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255,0,110,0.9);
+}
+
+/* ── HERO ──────────────────────────────────────────────────── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 120px 40px 80px;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255,0,110,0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(0,245,255,0.15) 0%, transparent 50%);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.hero-content {
+  text-align: center;
+  max-width: 1000px;
+  z-index: 10;
+}
+
+.hero-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px var(--neon-yellow);
+  margin-bottom: 24px;
+  animation: fadeIn 0.8s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.hero-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(48px, 8vw, 96px);
+  line-height: 1.2;
+  color: white;
+  text-shadow: 
+    0 0 20px var(--neon-cyan),
+    0 0 40px var(--neon-cyan),
+    0 0 60px var(--neon-pink),
+    0 0 80px var(--neon-pink);
+  margin-bottom: 32px;
+  animation: glowPulse 3s ease-in-out infinite, fadeIn 1s ease 0.2s both;
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    text-shadow: 
+      0 0 20px var(--neon-cyan),
+      0 0 40px var(--neon-cyan),
+      0 0 60px var(--neon-pink),
+      0 0 80px var(--neon-pink);
+  }
+  50% {
+    text-shadow: 
+      0 0 30px var(--neon-cyan),
+      0 0 60px var(--neon-cyan),
+      0 0 90px var(--neon-pink),
+      0 0 120px var(--neon-pink);
+  }
+}
+
+.hero-subtitle {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 500;
+  color: var(--neon-purple);
+  text-shadow: 0 0 10px var(--neon-purple);
+  margin-bottom: 48px;
+  animation: fadeIn 1.2s ease 0.4s both;
+}
+
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, var(--neon-pink), var(--arcade-red));
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 18px 40px;
+  border-radius: 6px;
+  border: 2px solid var(--neon-pink);
+  text-decoration: none;
+  box-shadow: 0 0 30px rgba(255,0,110,0.6);
+  transition: all 0.3s;
+  animation: fadeIn 1.4s ease 0.6s both;
+}
+.hero-cta:hover {
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 0 50px rgba(255,0,110,1);
+}
+
+/* ── ARCADE PIXELS ──────────────────────────────────────────── */
+.pixel-decoration {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 20px var(--neon-cyan);
+  opacity: 0.3;
+  animation: float 6s ease-in-out infinite;
+}
+
+.pixel-decoration:nth-child(1) {
+  top: 15%; left: 10%;
+  animation-delay: 0s;
+}
+.pixel-decoration:nth-child(2) {
+  top: 70%; left: 85%;
+  animation-delay: 2s;
+  background: var(--neon-pink);
+  box-shadow: 0 0 20px var(--neon-pink);
+}
+.pixel-decoration:nth-child(3) {
+  top: 40%; left: 90%;
+  animation-delay: 4s;
+  background: var(--neon-yellow);
+  box-shadow: 0 0 20px var(--neon-yellow);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-30px); }
+}
+
+/* ── SECTION SHARED ────────────────────────────────────────── */
+section {
+  position: relative;
+  z-index: 10;
+  padding: 100px 40px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+
+.section-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px var(--neon-yellow);
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 20px var(--neon-cyan);
+  margin-bottom: 20px;
+}
+
+.section-desc {
+  font-size: 18px;
+  color: var(--text-dim);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+/* ── FEATURES ──────────────────────────────────────────────── */
+.features {
+  background: linear-gradient(180deg, var(--darker-bg) 0%, var(--dark-bg) 100%);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: var(--panel-bg);
+  border: 2px solid var(--border-glow);
+  border-radius: 12px;
+  padding: 40px 32px;
+  text-align: center;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0,245,255,0.1), transparent);
+  transition: left 0.5s;
+}
+
+.feature-card:hover::before {
+  left: 100%;
+}
+
+.feature-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 30px rgba(0,245,255,0.4);
+  transform: translateY(-8px);
+}
+
+.feature-icon {
+  font-size: 48px;
+  margin-bottom: 24px;
+}
+
+.feature-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
+  margin-bottom: 16px;
+}
+
+.feature-desc {
+  font-size: 15px;
+  color: var(--text-dim);
+  line-height: 1.7;
+}
+
+/* ── STATS ─────────────────────────────────────────────────── */
+.stats {
+  background: var(--dark-bg);
+  border-top: 2px solid var(--neon-pink);
+  border-bottom: 2px solid var(--neon-pink);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.stat-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 20px var(--neon-cyan);
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.stat-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* ── ABOUT ─────────────────────────────────────────────────── */
+.about {
+  background: linear-gradient(180deg, var(--dark-bg) 0%, var(--darker-bg) 100%);
+}
+
+.about-content {
+  max-width: 900px;
+  margin: 0 auto;
+  background: var(--panel-bg);
+  border: 2px solid var(--border-glow);
+  border-radius: 12px;
+  padding: 60px 50px;
+  box-shadow: 0 0 40px rgba(0,245,255,0.2);
+}
+
+.about-content p {
+  font-size: 17px;
+  line-height: 1.9;
+  color: var(--text-main);
+  margin-bottom: 24px;
+}
+
+.about-content p:first-child {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--neon-cyan);
+  border-left: 4px solid var(--neon-pink);
+  padding-left: 24px;
+  margin-bottom: 32px;
+}
+
+/* ── FOOTER ────────────────────────────────────────────────── */
+footer {
+  background: var(--darker-bg);
+  border-top: 2px solid var(--neon-cyan);
+  padding: 60px 40px 32px;
+  text-align: center;
+}
+
+.footer-logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 24px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 20px var(--neon-cyan);
+  margin-bottom: 32px;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  list-style: none;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+.footer-links a:hover {
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
+}
+
+.footer-copy {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 24px;
+}
+
+.footer-tagline {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px var(--neon-yellow);
+  margin-bottom: 12px;
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  nav {
+    padding: 12px 20px;
+  }
+  .logo { font-size: 14px; }
+  .nav-links { gap: 16px; font-size: 11px; }
+  .nav-links a { display: none; }
+  .nav-links .btn-book-nav { display: inline-block; }
+  section { padding: 60px 20px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────── -->
+<nav>
+  <a href="https://www.canva.com/design/DAHFoW002Yg/6fBqRfGWb2uhf6QkS9ATag/edit" class="logo">HIGH SCORE</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#features">Experience</a></li>
+    <li><a href="#stats">Stats</a></li>
+    <li><a href="high-score-booking.html" class="btn-book-nav">Book Event</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ────────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="pixel-decoration"></div>
+  <div class="pixel-decoration"></div>
+  <div class="pixel-decoration"></div>
+
+  <div class="hero-content">
+    <div class="hero-tag">Salem, Virginia</div>
+    <h1 class="hero-title">HIGH<br>SCORE</h1>
+    <p class="hero-subtitle">Play. Compete. Repeat.</p>
+    <a href="high-score-booking.html" class="hero-cta">
+      Book Your Event
+      <span>▶</span>
+    </a>
+  </div>
+</section>
+
+<!-- ── FEATURES ────────────────────────────────────────────────── -->
+<section class="features" id="features">
+  <div class="section-header">
+    <div class="section-tag">The Experience</div>
+    <h2 class="section-title">What Makes Us Different</h2>
+    <p class="section-desc">High Score combines classic arcade gaming with a modern self-serve tap wall and casual dining in a lively, social environment.</p>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🕹️</div>
+      <h3 class="feature-title">Classic & Modern Games</h3>
+      <p class="feature-desc">Over 30 arcade machines featuring everything from retro classics to modern favorites. Compete on leaderboards for prizes and glory.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🍺</div>
+      <h3 class="feature-title">Self-Pour Tap Wall</h3>
+      <p class="feature-desc">Pour your own beer, wine, or premixed cocktails from our high-tech tap system. Pay by the ounce, control your experience.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🍕</div>
+      <h3 class="feature-title">Casual Dining</h3>
+      <p class="feature-desc">Simple, delicious menu with pizzas, wings, burgers, and more. Fast service so you can get back to gaming.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🎉</div>
+      <h3 class="feature-title">Private Events</h3>
+      <p class="feature-desc">Perfect for birthday parties, corporate events, and group celebrations. Book the whole venue or a private section.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3 class="feature-title">Level-Up Club</h3>
+      <p class="feature-desc">Join our loyalty program for exclusive perks, free drinks, and early access to tournaments and special events.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🎮</div>
+      <h3 class="feature-title">Weekly Tournaments</h3>
+      <p class="feature-desc">Compete in weekly gaming tournaments. Top players win branded merch and get featured on our leaderboards.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ───────────────────────────────────────────────────── -->
+<section class="stats" id="stats">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-num">30+</div>
+      <div class="stat-label">Arcade Machines</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">20+</div>
+      <div class="stat-label">Tap Lines</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">162</div>
+      <div class="stat-label">Capacity</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">21+</div>
+      <div class="stat-label">After 6PM</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ───────────────────────────────────────────────────── -->
+<section class="about" id="about">
+  <div class="section-header">
+    <div class="section-tag">Our Story</div>
+    <h2 class="section-title">About High Score</h2>
+  </div>
+
+  <div class="about-content">
+    <p>
+      High Score's mission is to create a unique and welcoming environment where community, entertainment, and connection come together.
+    </p>
+    <p>
+      We strive to be Salem Virginia's premier destination for social events and family fun by offering engaging arcade experiences, quality food and beverages, and an atmosphere that brings people of all ages together.
+    </p>
+    <p>
+      Located in the heart of downtown Salem, we're walkable from Roanoke College and surrounded by the vibrant Main Street community. Whether you're a college student looking for a fun night out, a family seeking weekend entertainment, or a group planning a private event, High Score delivers an unforgettable experience.
+    </p>
+    <p>
+      Our self-pour tap system, rotating game selection, and data-driven approach ensure that every visit feels fresh and exciting. Join us for themed nights, tournaments, live music, and more. Welcome to Salem's gaming destination.
+    </p>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-logo">HIGH SCORE</div>
+  <p class="footer-tagline">Play. Compete. Repeat.</p>
+  
+  <ul class="footer-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#features">Experience</a></li>
+    <li><a href="high-score-booking.html">Book Event</a></li>
+    <li><a href="#stats">Hours</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+
+  <p class="footer-copy">
+    © 2026 High Score Barcade. Salem, Virginia.<br>
+    123 Main Street, Salem, VA 24153
+  </p>
+</footer>
+
+</body>
+</html>

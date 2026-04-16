@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book Your Event — High Score Barcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ─── DESIGN TOKENS ─────────────────────────────────────────── */
+:root {
+  --neon-pink:    #FF006E;
+  --neon-cyan:    #00F5FF;
+  --neon-yellow:  #FFEA00;
+  --neon-purple:  #B400FF;
+  --neon-green:   #39FF14;
+  --arcade-red:   #FF1744;
+  --dark-bg:      #0A0E27;
+  --darker-bg:    #050816;
+  --panel-bg:     rgba(15,20,50,0.8);
+  --border-glow:  rgba(0,245,255,0.3);
+  --text-main:    #E0E7FF;
+  --text-dim:     #8B95C9;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--darker-bg);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ── GRID & SCANLINES ──────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, transparent 2px, transparent 4px);
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.5;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background-image: 
+    linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 1;
+  animation: gridDrift 20s linear infinite;
+}
+
+@keyframes gridDrift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(50px, 50px); }
+}
+
+/* ── NAV ───────────────────────────────────────────────────── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: rgba(10,14,39,0.95);
+  border-bottom: 2px solid var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0,245,255,0.5);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  padding: 16px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan);
+  letter-spacing: 2px;
+  text-decoration: none;
+}
+
+.nav-back {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+.nav-back:hover {
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
+}
+
+/* ── HEADER ────────────────────────────────────────────────── */
+.page-header {
+  padding: 120px 40px 60px;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+  background: radial-gradient(circle at center, rgba(255,0,110,0.1) 0%, transparent 70%);
+}
+
+.page-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px var(--neon-yellow);
+  margin-bottom: 16px;
+}
+
+.page-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 900;
+  color: white;
+  text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan);
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.page-subtitle {
+  font-size: 17px;
+  color: var(--text-dim);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── BOOKING LAYOUT ────────────────────────────────────────── */
+.booking-layout {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 40px 100px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 40px;
+  position: relative;
+  z-index: 10;
+}
+
+/* ── FORM MAIN ─────────────────────────────────────────────── */
+.booking-main {
+  background: var(--panel-bg);
+  border: 2px solid var(--border-glow);
+  border-radius: 12px;
+  padding: 48px 40px;
+  box-shadow: 0 0 40px rgba(0,245,255,0.2);
+}
+
+.form-section {
+  margin-bottom: 48px;
+}
+
+.form-section-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--neon-pink);
+  text-shadow: 0 0 10px var(--neon-pink);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.form-section-title::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--neon-pink), transparent);
+  box-shadow: 0 0 10px var(--neon-pink);
+}
+
+.field-wrap {
+  margin-bottom: 20px;
+}
+
+.field-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--neon-cyan);
+  margin-bottom: 8px;
+  display: block;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  background: rgba(10,14,39,0.6);
+  border: 2px solid var(--border-glow);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  padding: 14px 16px;
+  border-radius: 6px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0,245,255,0.3);
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2300F5FF' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+  cursor: pointer;
+}
+
+select option {
+  background: var(--dark-bg);
+  color: var(--text-main);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: 'Inter', sans-serif;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── EVENT TYPES ───────────────────────────────────────────── */
+.event-types {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.event-type-card {
+  background: rgba(10,14,39,0.6);
+  border: 2px solid var(--border-glow);
+  border-radius: 8px;
+  padding: 24px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.event-type-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 20px rgba(0,245,255,0.3);
+}
+
+.event-type-card.selected {
+  border-color: var(--neon-pink);
+  background: rgba(255,0,110,0.1);
+  box-shadow: 0 0 30px rgba(255,0,110,0.4);
+}
+
+.event-type-card.selected::before {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 16px;
+  color: var(--neon-pink);
+  font-weight: bold;
+}
+
+.event-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+
+.event-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 6px;
+}
+
+.event-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── SIDEBAR ───────────────────────────────────────────────── */
+.booking-sidebar {
+  background: var(--panel-bg);
+  border: 2px solid var(--border-glow);
+  border-radius: 12px;
+  padding: 32px 28px;
+  box-shadow: 0 0 40px rgba(0,245,255,0.2);
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.sidebar-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 10px var(--neon-yellow);
+  margin-bottom: 24px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0,245,255,0.1);
+}
+
+.summary-key {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.summary-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+}
+
+.summary-val.empty {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.price-estimate {
+  margin-top: 28px;
+  padding: 20px;
+  background: rgba(255,0,110,0.1);
+  border: 2px solid var(--neon-pink);
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 0 20px rgba(255,0,110,0.3);
+}
+
+.price-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.price-amount {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 40px;
+  font-weight: 900;
+  color: var(--neon-pink);
+  text-shadow: 0 0 20px var(--neon-pink);
+  line-height: 1;
+}
+
+.price-note {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
+.btn-submit {
+  width: 100%;
+  margin-top: 24px;
+  background: linear-gradient(135deg, var(--neon-pink), var(--arcade-red));
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 16px 24px;
+  border: 2px solid var(--neon-pink);
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(255,0,110,0.6);
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 40px rgba(255,0,110,1);
+}
+
+.btn-submit:disabled {
+  background: rgba(139,149,201,0.2);
+  border-color: var(--border-glow);
+  box-shadow: none;
+  cursor: not-allowed;
+  color: var(--text-dim);
+}
+
+/* ── CONFIRMATION SCREEN ───────────────────────────────────── */
+#confirmationScreen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,22,0.98);
+  z-index: 99999;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+
+#confirmationScreen.show {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.confirm-icon {
+  font-size: 80px;
+  margin-bottom: 32px;
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.confirm-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 900;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 30px var(--neon-cyan);
+  margin-bottom: 16px;
+  animation: fadeIn 0.8s ease 0.3s both;
+}
+
+.confirm-message {
+  font-size: 18px;
+  color: var(--text-main);
+  max-width: 600px;
+  margin: 0 auto 40px;
+  line-height: 1.8;
+  animation: fadeIn 0.8s ease 0.5s both;
+}
+
+.confirm-code {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 28px;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 20px var(--neon-yellow);
+  margin-bottom: 12px;
+  letter-spacing: 4px;
+  animation: fadeIn 0.8s ease 0.7s both;
+}
+
+.confirm-code-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 48px;
+}
+
+.confirm-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+  max-width: 800px;
+  margin: 0 auto 48px;
+  padding: 32px;
+  background: var(--panel-bg);
+  border: 2px solid var(--border-glow);
+  border-radius: 12px;
+  animation: fadeIn 0.8s ease 0.9s both;
+}
+
+.confirm-detail-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.confirm-detail-val {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+}
+
+.btn-home {
+  background: var(--panel-bg);
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 14px 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.btn-home:hover {
+  background: rgba(0,245,255,0.1);
+  box-shadow: 0 0 20px rgba(0,245,255,0.5);
+}
+
+/* ── RESPONSIVE ────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .booking-layout {
+    grid-template-columns: 1fr;
+    padding: 40px 20px 80px;
+  }
+  .booking-sidebar {
+    position: static;
+  }
+  .event-types {
+    grid-template-columns: 1fr;
+  }
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  nav {
+    padding: 12px 20px;
+  }
+  .logo { font-size: 14px; }
+  .page-header {
+    padding: 100px 20px 40px;
+  }
+  .booking-main {
+    padding: 32px 24px;
+  }
+  .confirm-details {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────────────── -->
+<nav>
+  <a href="high-score.html" class="logo">HIGH SCORE</a>
+  <a href="high-score.html" class="nav-back">
+    ← Back to Home
+  </a>
+</nav>
+
+<!-- ── HEADER ──────────────────────────────────────────────────── -->
+<div class="page-header">
+  <div class="page-tag">Private Events</div>
+  <h1 class="page-title">Book Your Event</h1>
+  <p class="page-subtitle">Perfect for birthday parties, corporate events, team building, and group celebrations. Fill out the form below and we'll get back to you within 24 hours.</p>
+</div>
+
+<!-- ── BOOKING LAYOUT ──────────────────────────────────────────── -->
+<div class="booking-layout">
+  
+  <!-- MAIN FORM -->
+  <div class="booking-main">
+    
+    <!-- EVENT TYPE -->
+    <div class="form-section">
+      <div class="form-section-title">Event Type</div>
+      <div class="event-types">
+        <div class="event-type-card" onclick="selectEventType(this, 'Birthday Party')">
+          <div class="event-icon">🎂</div>
+          <div class="event-name">Birthday Party</div>
+          <div class="event-desc">Kids or adults — celebrate in style</div>
+        </div>
+        <div class="event-type-card" onclick="selectEventType(this, 'Corporate Event')">
+          <div class="event-icon">💼</div>
+          <div class="event-name">Corporate Event</div>
+          <div class="event-desc">Team building & networking</div>
+        </div>
+        <div class="event-type-card" onclick="selectEventType(this, 'Private Party')">
+          <div class="event-icon">🎉</div>
+          <div class="event-name">Private Party</div>
+          <div class="event-desc">Rent the whole venue</div>
+        </div>
+        <div class="event-type-card" onclick="selectEventType(this, 'Tournament')">
+          <div class="event-icon">🏆</div>
+          <div class="event-name">Tournament</div>
+          <div class="event-desc">Competitive gaming event</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT INFO -->
+    <div class="form-section">
+      <div class="form-section-title">Contact Information</div>
+      <div class="field-wrap">
+        <label class="field-label">Full Name</label>
+        <input type="text" id="fullName" placeholder="John Doe" oninput="updateSummary()">
+      </div>
+      <div class="field-row">
+        <div class="field-wrap">
+          <label class="field-label">Email</label>
+          <input type="email" id="email" placeholder="you@example.com" oninput="updateSummary()">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Phone</label>
+          <input type="tel" id="phone" placeholder="(555) 123-4567" oninput="updateSummary()">
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENT DETAILS -->
+    <div class="form-section">
+      <div class="form-section-title">Event Details</div>
+      <div class="field-row">
+        <div class="field-wrap">
+          <label class="field-label">Event Date</label>
+          <input type="date" id="eventDate" oninput="updateSummary()">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Start Time</label>
+          <input type="time" id="startTime" oninput="updateSummary()">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-wrap">
+          <label class="field-label">Expected Guests</label>
+          <input type="number" id="guestCount" placeholder="25" min="10" max="200" oninput="updateSummary()">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">Duration (hours)</label>
+          <select id="duration" onchange="updateSummary()">
+            <option value="">Select</option>
+            <option value="2">2 Hours</option>
+            <option value="3">3 Hours</option>
+            <option value="4">4 Hours</option>
+            <option value="6">6+ Hours (Full Venue)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADDITIONAL REQUESTS -->
+    <div class="form-section">
+      <div class="form-section-title">Additional Requests</div>
+      <div class="field-wrap">
+        <label class="field-label">Special Requests or Notes</label>
+        <textarea id="specialRequests" placeholder="Dietary restrictions, game preferences, decorations, etc."></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SIDEBAR SUMMARY -->
+  <div class="booking-sidebar">
+    <div class="sidebar-title">Booking Summary</div>
+
+    <div class="summary-item">
+      <span class="summary-key">Event Type</span>
+      <span class="summary-val empty" id="sumEventType">Not selected</span>
+    </div>
+
+    <div class="summary-item">
+      <span class="summary-key">Date</span>
+      <span class="summary-val empty" id="sumDate">Not selected</span>
+    </div>
+
+    <div class="summary-item">
+      <span class="summary-key">Time</span>
+      <span class="summary-val empty" id="sumTime">Not selected</span>
+    </div>
+
+    <div class="summary-item">
+      <span class="summary-key">Guests</span>
+      <span class="summary-val empty" id="sumGuests">—</span>
+    </div>
+
+    <div class="summary-item">
+      <span class="summary-key">Duration</span>
+      <span class="summary-val empty" id="sumDuration">—</span>
+    </div>
+
+    <div class="price-estimate">
+      <div class="price-label">Estimated Total</div>
+      <div class="price-amount">$<span id="priceAmount">—</span></div>
+      <div class="price-note">Final pricing confirmed after review. Includes venue rental, arcade credits, and basic setup.</div>
+    </div>
+
+    <button class="btn-submit" id="btnSubmit" onclick="submitBooking()" disabled>
+      Submit Request
+      <span>▶</span>
+    </button>
+  </div>
+
+</div>
+
+<!-- ── CONFIRMATION SCREEN ─────────────────────────────────────── -->
+<div id="confirmationScreen">
+  <div class="confirm-icon">🎮</div>
+  <h2 class="confirm-title">Booking Request Sent!</h2>
+  <p class="confirm-message">
+    Thank you for choosing High Score! We've received your event booking request and our team will review it shortly. You'll receive a confirmation email within 24 hours with next steps and payment details.
+  </p>
+  
+  <div class="confirm-code" id="confirmCode">HS-2847</div>
+  <div class="confirm-code-label">Booking Reference Number</div>
+
+  <div class="confirm-details">
+    <div>
+      <div class="confirm-detail-label">Event Type</div>
+      <div class="confirm-detail-val" id="confirmEventType">—</div>
+    </div>
+    <div>
+      <div class="confirm-detail-label">Date & Time</div>
+      <div class="confirm-detail-val" id="confirmDateTime">—</div>
+    </div>
+    <div>
+      <div class="confirm-detail-label">Guests</div>
+      <div class="confirm-detail-val" id="confirmGuests">—</div>
+    </div>
+    <div>
+      <div class="confirm-detail-label">Estimated Total</div>
+      <div class="confirm-detail-val" id="confirmPrice">—</div>
+    </div>
+  </div>
+
+  <a href="high-score.html" class="btn-home">← Back to Home</a>
+</div>
+
+<!-- ── JAVASCRIPT ──────────────────────────────────────────────── -->
+<script>
+let selectedEvent = '';
+
+function selectEventType(card, eventType) {
+  document.querySelectorAll('.event-type-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  selectedEvent = eventType;
+  updateSummary();
+}
+
+function updateSummary() {
+  const fullName = document.getElementById('fullName').value;
+  const email = document.getElementById('email').value;
+  const eventDate = document.getElementById('eventDate').value;
+  const startTime = document.getElementById('startTime').value;
+  const guestCount = document.getElementById('guestCount').value;
+  const duration = document.getElementById('duration').value;
+  
+  // Update summary fields
+  document.getElementById('sumEventType').textContent = selectedEvent || 'Not selected';
+  document.getElementById('sumEventType').classList.toggle('empty', !selectedEvent);
+  
+  if (eventDate) {
+    const date = new Date(eventDate);
+    document.getElementById('sumDate').textContent = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    document.getElementById('sumDate').classList.remove('empty');
+  } else {
+    document.getElementById('sumDate').textContent = 'Not selected';
+    document.getElementById('sumDate').classList.add('empty');
+  }
+  
+  if (startTime) {
+    const [hours, mins] = startTime.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    document.getElementById('sumTime').textContent = `${h12}:${mins} ${ampm}`;
+    document.getElementById('sumTime').classList.remove('empty');
+  } else {
+    document.getElementById('sumTime').textContent = 'Not selected';
+    document.getElementById('sumTime').classList.add('empty');
+  }
+  
+  if (guestCount) {
+    document.getElementById('sumGuests').textContent = guestCount + ' people';
+    document.getElementById('sumGuests').classList.remove('empty');
+  } else {
+    document.getElementById('sumGuests').textContent = '—';
+    document.getElementById('sumGuests').classList.add('empty');
+  }
+  
+  if (duration) {
+    document.getElementById('sumDuration').textContent = duration + ' hours';
+    document.getElementById('sumDuration').classList.remove('empty');
+  } else {
+    document.getElementById('sumDuration').textContent = '—';
+    document.getElementById('sumDuration').classList.add('empty');
+  }
+  
+  // Calculate price estimate
+  if (guestCount && duration) {
+    const guests = parseInt(guestCount);
+    const hours = parseInt(duration);
+    
+    // Pricing logic: $25/person base + $100/hour venue
+    const basePrice = guests * 25;
+    const venuePrice = hours * 100;
+    const total = basePrice + venuePrice;
+    
+    document.getElementById('priceAmount').textContent = total.toLocaleString();
+  } else {
+    document.getElementById('priceAmount').textContent = '—';
+  }
+  
+  // Enable submit button if all required fields are filled
+  const canSubmit = fullName && email && selectedEvent && eventDate && startTime && guestCount && duration;
+  document.getElementById('btnSubmit').disabled = !canSubmit;
+}
+
+function submitBooking() {
+  const fullName = document.getElementById('fullName').value;
+  const eventDate = document.getElementById('eventDate').value;
+  const startTime = document.getElementById('startTime').value;
+  const guestCount = document.getElementById('guestCount').value;
+  const priceAmount = document.getElementById('priceAmount').textContent;
+  
+  // Generate confirmation code
+  const code = 'HS-' + Math.floor(1000 + Math.random() * 9000);
+  
+  // Format date/time
+  const date = new Date(eventDate);
+  const [hours, mins] = startTime.split(':');
+  const h = parseInt(hours);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const dateTimeStr = `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} at ${h12}:${mins} ${ampm}`;
+  
+  // Populate confirmation screen
+  document.getElementById('confirmCode').textContent = code;
+  document.getElementById('confirmEventType').textContent = selectedEvent;
+  document.getElementById('confirmDateTime').textContent = dateTimeStr;
+  document.getElementById('confirmGuests').textContent = guestCount + ' people';
+  document.getElementById('confirmPrice').textContent = '$' + priceAmount;
+  
+  // Show confirmation
+  document.getElementById('confirmationScreen').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+</script>
+
+</body>
+</html>
